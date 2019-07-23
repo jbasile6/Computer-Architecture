@@ -7,15 +7,15 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        self.memory = [0] * 256
-        self.register = [0] * 8
+        self.ram = [bin(0)] * 256
+        self.reg = [bin(0)] * 8
         self.pc = 0
 
-    def ram_read(self, address):
-        return self.memory[address]
+    def ram_read(self, mar):
+        return self.ram[mar]
 
-    def ram_read(self, value, address):
-        self.memory[address] = value
+    def ram_write(self, mdr, mar):
+        self.ram[mar] = mdr
 
     def load(self):
         """Load a program into memory."""
@@ -35,7 +35,7 @@ class CPU:
         ]
 
         for instruction in program:
-            self.ram[address] = instruction
+            self.ram[address] = bin(instruction)
             address += 1
 
 
@@ -70,4 +70,36 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #LDI- load immediate
+        # store val in a register
+        # takes next val in program to find what reg to place it in
+        # sets next val to be val of register
+        ldi = bin(0b10000010)
+        #PRN
+        #print something
+        # next val tells which reg to print
+        prn = bin(0b01000111)
+        #HLT- halt command
+        hlt = bin(0b00000001)
+
+
+        running = True
+
+        while running:
+            ir = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if ir == ldi:
+                self.reg[int(operand_a, 2)] = operand_b
+                self.pc += 3
+
+            if ir == prn:
+                val = self.reg[int(operand_a, 2)]
+                print(int(val, 2))
+                self.pc += 2
+            
+            elif ir == hlt:
+                running = False
+                print("HALTED")
+
