@@ -17,16 +17,24 @@ class CPU:
         self.branchtable['hlt'] = self.handle_hlt
         self.branchtable['mul'] = self.handle_mul
         #day 3 mvp
+        self.sp = 255 # stack pointer set to end of ram/ prevents overlap
         self.branchtable['pop'] = self.handle_pop
         self.branchtable['push'] = self.handle_push
 
-    def handle_pop(self):
-        pass
+    def handle_pop(self, operand_a):
+        self.sp += 1
+        pop_num = self.ram[self.sp]
+        index = int(operand_a, 2)
+        self.reg[index] = pop_num
+
         self.pc += 2
 
-    def handle_push(self):
-        pass
+    def handle_push(self, operand_a):
+        index = int(operand_a, 2)
+        push_num = self.reg[index]
+        self.ram[self.sp] = push_num
         self.pc += 2
+        self.sp -= 1
 
     def handle_ldi(self, operand_a, operand_b):
         self.reg[int(operand_a, 2)] = operand_b
@@ -37,8 +45,9 @@ class CPU:
         self.pc += 2
 
     def handle_hlt(self):
-        sys.exit(1)
         print("Halted!")
+        sys.exit(1)
+        
 
     def handle_mul(self, operand_a, operand_b):
         num1 = self.reg[int(operand_a, 2)]
@@ -144,10 +153,10 @@ class CPU:
                 self.branchtable['prn'](operand_a)
 
             if ir == push:
-                self.branchtable['push']()
+                self.branchtable['push'](operand_a)
 
             if ir == pop:
-                self.branchtable['pop']()
+                self.branchtable['pop'](operand_a)
             
             elif ir == hlt:
                 self.branchtable['hlt']()
