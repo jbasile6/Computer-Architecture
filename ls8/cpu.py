@@ -10,12 +10,23 @@ class CPU:
         self.ram = [bin(0)] * 256
         self.reg = [bin(0)] * 8
         self.pc = 0
-
+        #day 2 mvp
         self.branchtable = {}
         self.branchtable['ldi'] = self.handle_ldi
         self.branchtable['prn'] = self.handle_prn
         self.branchtable['hlt'] = self.handle_hlt
         self.branchtable['mul'] = self.handle_mul
+        #day 3 mvp
+        self.branchtable['pop'] = self.handle_pop
+        self.branchtable['push'] = self.handle_push
+
+    def handle_pop(self):
+        pass
+        self.pc += 2
+
+    def handle_push(self):
+        pass
+        self.pc += 2
 
     def handle_ldi(self, operand_a, operand_b):
         self.reg[int(operand_a, 2)] = operand_b
@@ -110,6 +121,10 @@ class CPU:
         hlt = bin(0b00000001)
         #MUL - multiply  command
         mul = bin(0b10100010)
+        #PUSH - push command
+        push = bin(0b01000101)
+        #POP - pop command
+        pop= bin(0b01000110)
 
 
         running = True
@@ -127,6 +142,12 @@ class CPU:
 
             if ir == prn:
                 self.branchtable['prn'](operand_a)
+
+            if ir == push:
+                self.branchtable['push']()
+
+            if ir == pop:
+                self.branchtable['pop']()
             
             elif ir == hlt:
                 self.branchtable['hlt']()
