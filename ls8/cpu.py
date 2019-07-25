@@ -20,8 +20,22 @@ class CPU:
         self.sp = 255 # stack pointer set to end of ram/ prevents overlap
         self.branchtable['pop'] = self.handle_pop
         self.branchtable['push'] = self.handle_push
+        #day 4 mvp
+        self.branchtable['call'] = self.handle_call
+        self.branchtable['ret'] = self.handle_ret
+        self.branchtable['add'] = self.handle_add
+
+    def handle_call(self):
+        pass
+
+    def handle_ret(self):
+        pass
+
+    def handle_add(self):
+        pass
 
     def handle_pop(self, operand_a):
+        print("POP!")
         self.sp += 1
         pop_num = self.ram[self.sp]
         index = int(operand_a, 2)
@@ -30,6 +44,7 @@ class CPU:
         self.pc += 2
 
     def handle_push(self, operand_a):
+        print('PUSH!')
         index = int(operand_a, 2)
         push_num = self.reg[index]
         self.ram[self.sp] = push_num
@@ -37,10 +52,12 @@ class CPU:
         self.sp -= 1
 
     def handle_ldi(self, operand_a, operand_b):
+        print('LDI!')
         self.reg[int(operand_a, 2)] = operand_b
         self.pc += 3
 
     def handle_prn(self, operand_a):
+        print('PRN!')
         print(int(self.reg[int(operand_a, 2)], 2))
         self.pc += 2
 
@@ -50,6 +67,7 @@ class CPU:
         
 
     def handle_mul(self, operand_a, operand_b):
+        print('MUL!')
         num1 = self.reg[int(operand_a, 2)]
         num2 = self.reg[int(operand_b, 2)]
         mul_answer =  int(num1, 2) * int(num2, 2)
@@ -135,6 +153,10 @@ class CPU:
         #POP - pop command
         pop= bin(0b01000110)
 
+        call = bin(0b01010000)
+        ret = bin(0b00010001)
+        add = bin(0b10100000)
+
 
         running = True
 
@@ -157,6 +179,15 @@ class CPU:
 
             if ir == pop:
                 self.branchtable['pop'](operand_a)
+
+            if ir == call:
+                self.branchtable['call']()
+            
+            if ir == ret:
+                self.branchtable['ret']()
+
+            if ir == add:
+                self.branchtable['add']()
             
             elif ir == hlt:
                 self.branchtable['hlt']()
