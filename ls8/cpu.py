@@ -25,14 +25,32 @@ class CPU:
         self.branchtable['ret'] = self.handle_ret
         self.branchtable['add'] = self.handle_add
 
-    def handle_call(self):
-        pass
+    def handle_call(self, operand_a):
+        print('Call!!!')
+        next_instruction = self.pc + 2
+        self.ram[self.sp] = bin(next_instruction)
+        self.sp -= 1
+        change_pc = int(operand_a, 2)
+        register_val = self.reg[change_pc]
+        self.pc = int(register_val, 2)
 
     def handle_ret(self):
-        pass
+        print('Return!!!')
+        self.sp += 1
+        ret_position = self.ram[self.sp]
+        self.pc = int(ret_position, 2)
 
-    def handle_add(self):
-        pass
+    def handle_add(self, operand_a, operand_b):
+        print('Add!!!')
+        index1 = int(operand_a, 2)
+        index2 = int(operand_b, 2)
+        add1 = int(self.reg[index1], 2)
+        add2 = int(self.reg[index2], 2)
+        sumOfNum = add1 + add2
+        self.reg[index1] = bin(sumOfNum)
+        self.pc += 3
+
+
 
     def handle_pop(self, operand_a):
         print("POP!")
@@ -181,13 +199,13 @@ class CPU:
                 self.branchtable['pop'](operand_a)
 
             if ir == call:
-                self.branchtable['call']()
+                self.branchtable['call'](operand_a)
             
             if ir == ret:
                 self.branchtable['ret']()
 
             if ir == add:
-                self.branchtable['add']()
+                self.branchtable['add'](operand_a, operand_b)
             
             elif ir == hlt:
                 self.branchtable['hlt']()
