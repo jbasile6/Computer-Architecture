@@ -7,6 +7,7 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
+        self.fl = 0b00000000 # flags
         self.ram = [bin(0)] * 256
         self.reg = [bin(0)] * 8
         self.pc = 0
@@ -24,9 +25,41 @@ class CPU:
         self.branchtable['call'] = self.handle_call
         self.branchtable['ret'] = self.handle_ret
         self.branchtable['add'] = self.handle_add
+        #sprint challenge
+        self.branchtable['cmp'] = self.handle_cmp
+        self.branchtable['jmp'] = self.handle_jmp
+        self.branchtable['jeq'] = self.handle_jeq
+        self.branchtable['jne'] = self.handle_jne
+
+
+    def handle_jne(self):
+        print('JNE')
+        if self.fl != 1:
+            self.handle_jmp()
+        else:
+            self.pc += 2
+
+    def handle_jeq(self):
+        print('JEQ')
+        if self.fl == 0b00000001:
+            self.handle_jmp()
+        else:
+            self.pc += 2
+
+    def handle_jmp(self):
+        print('JMP')
+        reg_addr = self.ram_read(self.pc + 1) #operand_a
+        reg_val = self.reg[int(reg_addr, 2)]
+        self.pc = int(reg_val, 2)
+
+    def handle_cmp(self, operand_a, operand_b):
+        print('CMP')
+        self.alu('CMP', operand_a, operand_b)
+        self.pc += 3
+
 
     def handle_call(self, operand_a):
-        print('Call!!!')
+        print('Call')
         next_instruction = self.pc + 2
         self.ram[self.sp] = bin(next_instruction)
         self.sp -= 1
@@ -35,13 +68,13 @@ class CPU:
         self.pc = int(register_val, 2)
 
     def handle_ret(self):
-        print('Return!!!')
+        print('Return')
         self.sp += 1
         ret_position = self.ram[self.sp]
         self.pc = int(ret_position, 2)
 
     def handle_add(self, operand_a, operand_b):
-        print('Add!!!')
+        print('Add')
         index1 = int(operand_a, 2)
         index2 = int(operand_b, 2)
         add1 = int(self.reg[index1], 2)
@@ -53,7 +86,7 @@ class CPU:
 
 
     def handle_pop(self, operand_a):
-        print("POP!")
+        print("POP")
         self.sp += 1
         pop_num = self.ram[self.sp]
         index = int(operand_a, 2)
@@ -62,7 +95,7 @@ class CPU:
         self.pc += 2
 
     def handle_push(self, operand_a):
-        print('PUSH!')
+        print('PUSH')
         index = int(operand_a, 2)
         push_num = self.reg[index]
         self.ram[self.sp] = push_num
@@ -70,22 +103,22 @@ class CPU:
         self.sp -= 1
 
     def handle_ldi(self, operand_a, operand_b):
-        print('LDI!')
+        print('LDI')
         self.reg[int(operand_a, 2)] = operand_b
         self.pc += 3
 
     def handle_prn(self, operand_a):
-        print('PRN!')
+        print('PRN')
         print(int(self.reg[int(operand_a, 2)], 2))
         self.pc += 2
 
     def handle_hlt(self):
-        print("Halted!")
+        print("Halted")
         sys.exit(1)
         
 
     def handle_mul(self, operand_a, operand_b):
-        print('MUL!')
+        print('MUL')
         num1 = self.reg[int(operand_a, 2)]
         num2 = self.reg[int(operand_b, 2)]
         mul_answer =  int(num1, 2) * int(num2, 2)
@@ -127,7 +160,18 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+
+
+        elif op == "CMP": 
+            val = int(self.reg[int(reg_a, 2)], 2) - int(self.reg[int(reg_b, 2)], 2)
+            # print(val)
+
+            if val == 0: #they are equal
+                self.fl = 0b00000001
+            elif val > 0: # reg_a is greater
+                self.fl = 0b00000010
+            else: #reg_b is greater
+                self.fl = 0b00000100
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -139,7 +183,7 @@ class CPU:
 
         print(f"TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
-            #self.fl,
+            self.fl,
             #self.ie,
             self.ram_read(self.pc),
             self.ram_read(self.pc + 1),
@@ -175,6 +219,12 @@ class CPU:
         ret = bin(0b00010001)
         add = bin(0b10100000)
 
+        CMP = bin(0b10100111)
+        jmp = bin(0b01010100)
+        jeq = bin(0b01010101)
+        jne = bin(0b01010110)
+
+
 
         running = True
 
@@ -183,28 +233,40 @@ class CPU:
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
 
-            if ir == mul:
+            if ir == CMP:
+                self.branchtable['cmp'](operand_a, operand_b)
+
+            elif ir == jmp:
+                self.branchtable['jmp']()
+
+            elif ir == jeq:
+                self.branchtable['jeq']()
+
+            elif ir == jne:
+                self.branchtable['jne']()
+
+            elif ir == mul:
                 self.branchtable['mul'](operand_a, operand_b)
 
-            if ir == ldi:
+            elif ir == ldi:
                 self.branchtable['ldi'](operand_a, operand_b)
 
-            if ir == prn:
+            elif ir == prn:
                 self.branchtable['prn'](operand_a)
 
-            if ir == push:
+            elif ir == push:
                 self.branchtable['push'](operand_a)
 
-            if ir == pop:
+            elif ir == pop:
                 self.branchtable['pop'](operand_a)
 
-            if ir == call:
+            elif ir == call:
                 self.branchtable['call'](operand_a)
             
-            if ir == ret:
+            elif ir == ret:
                 self.branchtable['ret']()
 
-            if ir == add:
+            elif ir == add:
                 self.branchtable['add'](operand_a, operand_b)
             
             elif ir == hlt:
